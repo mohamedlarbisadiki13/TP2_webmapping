@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+w<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -17,7 +17,7 @@
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
         // Test with simple error handling
-        fetch('TP2_webmapping.geojson')
+        fetch('new.geojson')
             .then(response => {
                 console.log('Response status:', response.status);
                 if (!response.ok) throw new Error('HTTP error: ' + response.status);
@@ -34,3 +34,4 @@
     </script>
 </body>
 </html>
+
