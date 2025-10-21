@@ -17,7 +17,7 @@ w<!DOCTYPE html>
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
         // Test with simple error handling
-        fetch('new.geojson')
+        fetch('https://raw.githubusercontent.com/yourusername/your-repo-name/main/new.geojson')
             .then(response => {
                 console.log('Response status:', response.status);
                 if (!response.ok) throw new Error('HTTP error: ' + response.status);
@@ -34,4 +34,5 @@ w<!DOCTYPE html>
     </script>
 </body>
 </html>
+
 
