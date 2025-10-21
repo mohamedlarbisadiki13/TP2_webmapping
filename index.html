@@ -27,7 +27,7 @@
     }
     
     header {
-      background: linear-gradient(to right, #800026, #BD0026);
+      background: linear-gradient(to right, #67000d, #a50f15);
       color: white;
       padding: 25px 0;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -101,7 +101,7 @@
       border-radius: 10px;
       padding: 25px;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-      border-top: 4px solid #BD0026;
+      border-top: 4px solid #a50f15;
     }
     
     .info-card h3 {
@@ -115,7 +115,7 @@
     }
     
     .info-card h3 i {
-      color: #BD0026;
+      color: #a50f15;
     }
     
     .info-card p {
@@ -159,7 +159,7 @@
     }
     
     .footer-links a:hover {
-      color: #BD0026;
+      color: #a50f15;
     }
     
     .copyright {
@@ -169,9 +169,30 @@
       width: 100%;
     }
     
-    /* Leaflet Overrides */
-    .leaflet-control-container .leaflet-top {
-      top: 85px;
+    /* Leaflet Overrides - Reorganized to prevent overlap */
+    .leaflet-top.leaflet-left {
+      top: 10px;
+      left: 10px;
+    }
+    
+    .leaflet-top.leaflet-right {
+      top: 10px;
+      right: 10px;
+    }
+    
+    .leaflet-bottom.leaflet-left {
+      bottom: 10px;
+      left: 10px;
+    }
+    
+    .leaflet-bottom.leaflet-right {
+      bottom: 30px; /* Make room for attribution */
+      right: 10px;
+    }
+    
+    .leaflet-control-layers {
+      border-radius: 8px !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
     }
     
     .info {
@@ -181,6 +202,7 @@
       border-radius: 10px;
       font: 14px/1.5 'Open Sans', sans-serif;
       border: 1px solid #e1e8ed;
+      max-width: 280px;
     }
     
     .info h4 {
@@ -201,6 +223,7 @@
       border-radius: 10px;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
       border: 1px solid #e1e8ed;
+      max-width: 220px;
     }
     
     .legend i {
@@ -245,8 +268,16 @@
       font-size: 16px;
       font-weight: 600;
       margin-bottom: 8px;
-      color: #BD0026;
+      color: #a50f15;
       font-family: 'Montserrat', sans-serif;
+    }
+    
+    /* Attribution styling */
+    .leaflet-control-attribution {
+      background: rgba(255, 255, 255, 0.9) !important;
+      border-radius: 4px !important;
+      padding: 2px 8px !important;
+      font-size: 11px !important;
     }
     
     @media (max-width: 768px) {
@@ -276,6 +307,32 @@
       .footer-info {
         text-align: center;
       }
+      
+      /* Adjust controls for mobile */
+      .leaflet-top.leaflet-left {
+        top: 5px;
+        left: 5px;
+      }
+      
+      .leaflet-top.leaflet-right {
+        top: 5px;
+        right: 5px;
+      }
+      
+      .leaflet-bottom.leaflet-left {
+        bottom: 5px;
+        left: 5px;
+      }
+      
+      .leaflet-bottom.leaflet-right {
+        bottom: 25px;
+        right: 5px;
+      }
+      
+      .info, .legend {
+        max-width: 200px;
+        font-size: 12px;
+      }
     }
   </style>
 </head>
@@ -285,7 +342,7 @@
       <div class="header-content">
         <div>
           <h1 class="page-title">Carte Choroplèthe - Population par Région au Maroc</h1>
-          <p class="author">Réalisé par Khawla Elmoutawakkil</p>
+          <p class="author">Réalisé par Mohamed larbi Sadiki</p>
         </div>
       </div>
       <p class="description">
@@ -314,7 +371,8 @@
         <p><strong>Survoler une région</strong> : Affiche les informations détaillées sur la population</p>
         <p><strong>Cliquer sur une région</strong> : Zoomer sur la région sélectionnée</p>
         <p><strong>Utiliser les contrôles</strong> : Zoomer/dézoomer avec les boutons +/-</p>
-        <p><strong>Légende</strong> : Comprendre la signification des couleurs</p>
+        <p><strong>Changer le fond de carte</strong> : Utiliser le contrôle en haut à droite</p>
+        <p><strong>Légende</strong> : Comprendre la signification des couleurs (en bas à droite)</p>
       </div>
       
       <div class="info-card">
@@ -330,7 +388,7 @@
       <div class="footer-content">
         <div class="footer-info">
           <p><strong>Carte Choroplèthe - Population par Région au Maroc</strong></p>
-          <p>Réalisé par Khawla Elmoutawakkil</p>
+          <p>Réalisé par Mohamed larbi Sadiki</p>
         </div>
         
         <div class="footer-links">
@@ -354,14 +412,39 @@
     // Initialize the map - using the same settings as your original code
     const map = L.map('map').setView([31.5, -7.5], 6);
 
-    // Add tile layer - same as original
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // Define multiple base maps
+    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 18,
-      attribution: '&copy; OpenStreetMap contributors'
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+
+    const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+      maxZoom: 18
+    });
+
+    const lightLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 20
+    });
+
+    // Add the default base map
+    osmLayer.addTo(map);
+
+    // Create layer control (positioned top-right)
+    const baseMaps = {
+      "Carte Standard": osmLayer,
+      "Vue Satellite": satelliteLayer,
+      "Carte Claire": lightLayer
+    };
+
+    const layersControl = L.control.layers(baseMaps, null, {
+      position: 'topright'
     }).addTo(map);
 
-    // Create info control - enhanced version
-    const info = L.control();
+    // Create info control (positioned topleft)
+    const info = L.control({ position: 'topleft' });
 
     info.onAdd = function () {
       this._div = L.DomUtil.create('div', 'info');
@@ -396,14 +479,14 @@
 
     info.addTo(map);
 
-    // Color function for the choropleth - same as original
+    // NEW COLOR SCHEME: from #fff5f0 (light) to #67000d (dark)
     function getColor(d) {
       d = Number(d);
-      return d > 5132639 ? '#800026' :
-             d > 3020431 ? '#BD0026' :
-             d > 1655623 ? '#E31A1C' :
-             d >= 219965  ? '#FC4E2A' :
-                            '#FFEDA0';
+      return d > 5132639 ? '#67000d' :
+             d > 3020431 ? '#a50f15' :
+             d > 1655623 ? '#de2d26' :
+             d >= 219965  ? '#fb6a4a' :
+                            '#fff5f0';
     }
 
     // Style function for regions - same as original
@@ -458,7 +541,7 @@
       onEachFeature: onEachFeature
     }).addTo(map);
 
-    // Create legend - enhanced version
+    // Create legend (positioned bottomright)
     const legend = L.control({ position: 'bottomright' });
 
     legend.onAdd = function () {
