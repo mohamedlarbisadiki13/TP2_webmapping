@@ -497,15 +497,28 @@
       callWPSArea(feature, wpsValue, wpsResultBox);
     }
 
-    // --- NOUVEAU ---
+    // --- NOUVEAU (Version Corrigée 2) ---
     // Fonction asynchrone pour appeler le serveur WPS
     async function callWPSArea(feature, wpsValueElement, wpsBoxElement) {
       const wpsUrl = 'http://127.0.0.1:5000/wps';
-      // Assurez-vous que l'identifier correspond à celui dans votre demo.py
       const processId = 'universal_area'; 
       
-      // Nous n'avons besoin que de la géométrie pour le calcul
       const geometry = feature.geometry; 
+
+      // --- CORRECTION N°2 ---
+      // Emballer notre "Feature" dans une "FeatureCollection"
+      // C'est le format de fichier GeoJSON le plus standard que Fiona s'attend à lire.
+      const geojsonFeatureCollection = {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "properties": {}, // Les propriétés n'ont pas d'importance pour le calcul
+            "geometry": geometry 
+          }
+        ]
+      };
+      // --- FIN CORRECTION N°2 ---
 
       // Construire le corps de la requête XML
       const xmlBody = `
@@ -516,7 +529,7 @@
                   <ows:Identifier>input_layer</ows:Identifier>
                   <wps:Data>
                       <wps:ComplexData mimeType="application/geojson">
-                          <![CDATA[${JSON.stringify(geometry)}]]>
+                          <![CDATA[${JSON.stringify(geojsonFeatureCollection)}]]>
                       </wps:ComplexData>
                   </wps:Data>
               </wps:Input>
@@ -537,38 +550,34 @@
             body: xmlBody
         });
 
-        if (!response.ok) {
-           throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-
         const xmlString = await response.text();
-        
-        // Analyser la réponse XML
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+
+        if (!response.ok) {
+           // Si c'est une erreur 400, le serveur renvoie un XML d'erreur
+           const errorNode = xmlDoc.querySelector("ExceptionText");
+           throw new Error(errorNode ? errorNode.textContent : `Erreur HTTP ${response.status}`);
+        }
         
-        // Extraire la donnée (le nombre)
         const outputNode = xmlDoc.querySelector("LiteralData");
         
         if (outputNode) {
             const area = parseFloat(outputNode.textContent);
-            // Convertir de m² en km² et formater
             const areaInKm2 = (area / 1_000_000).toLocaleString('fr-FR', { maximumFractionDigits: 2 });
             wpsValueElement.textContent = `${areaInKm2} km²`;
         } else {
-            const errorNode = xmlDoc.querySelector("ExceptionText");
-            wpsValueElement.textContent = 'Erreur: ' + (errorNode ? errorNode.textContent : 'Réponse inconnue.');
+            throw new Error('Réponse XML inconnue du serveur.');
         }
 
       } catch (error) {
         console.error('Erreur lors de l_appel WPS:', error);
-        wpsValueElement.textContent = `Erreur de connexion. (Serveur lancé?)`;
+        wpsValueElement.textContent = `Erreur: ${error.message}`;
       } finally {
-        // S'assurer que la boîte de résultat est visible
         wpsBoxElement.style.display = 'block';
       }
     }
-
+    
     // --- MODIFIÉ ---
     // Fonction d'ajout des événements (on remplace 'zoomToFeature' par 'onRegionClick')
     function onEachFeature(feature, layer) {
@@ -605,3 +614,4 @@
   </script>
 </body>
 </html>
+
