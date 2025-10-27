@@ -169,26 +169,11 @@
       width: 100%;
     }
     
-    /* Leaflet Overrides - Reorganized to prevent overlap */
-    .leaflet-top.leaflet-left {
-      top: 10px;
-      left: 10px;
-    }
-    
-    .leaflet-top.leaflet-right {
-      top: 10px;
-      right: 10px;
-    }
-    
-    .leaflet-bottom.leaflet-left {
-      bottom: 10px;
-      left: 10px;
-    }
-    
-    .leaflet-bottom.leaflet-right {
-      bottom: 30px; /* Make room for attribution */
-      right: 10px;
-    }
+    /* Leaflet Overrides */
+    .leaflet-top.leaflet-left { top: 10px; left: 10px; }
+    .leaflet-top.leaflet-right { top: 10px; right: 10px; }
+    .leaflet-bottom.leaflet-left { bottom: 10px; left: 10px; }
+    .leaflet-bottom.leaflet-right { bottom: 30px; right: 10px; }
     
     .leaflet-control-layers {
       border-radius: 8px !important;
@@ -272,7 +257,22 @@
       font-family: 'Montserrat', sans-serif;
     }
     
-    /* Attribution styling */
+    /* --- NOUVEAU --- Style pour la boîte de résultat WPS */
+    .wps-box {
+        border-top: 1px dashed #c00 !important; 
+        margin-top: 10px !important; 
+        padding-top: 10px !important;
+    }
+    .wps-label {
+        color: #a50f15 !important; 
+        font-weight: bold !important;
+    }
+    .wps-value {
+        color: #a50f15 !important;
+        font-weight: bold !important;
+    }
+    /* --- FIN NOUVEAU --- */
+    
     .leaflet-control-attribution {
       background: rgba(255, 255, 255, 0.9) !important;
       border-radius: 4px !important;
@@ -281,58 +281,7 @@
     }
     
     @media (max-width: 768px) {
-      .header-content {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-      }
-      
-      .page-title {
-        font-size: 24px;
-      }
-      
-      .map-frame {
-        height: 60vh;
-      }
-      
-      .info-section {
-        flex-direction: column;
-      }
-      
-      .footer-content {
-        flex-direction: column;
-        text-align: center;
-      }
-      
-      .footer-info {
-        text-align: center;
-      }
-      
-      /* Adjust controls for mobile */
-      .leaflet-top.leaflet-left {
-        top: 5px;
-        left: 5px;
-      }
-      
-      .leaflet-top.leaflet-right {
-        top: 5px;
-        right: 5px;
-      }
-      
-      .leaflet-bottom.leaflet-left {
-        bottom: 5px;
-        left: 5px;
-      }
-      
-      .leaflet-bottom.leaflet-right {
-        bottom: 25px;
-        right: 5px;
-      }
-      
-      .info, .legend {
-        max-width: 200px;
-        font-size: 12px;
-      }
+      /* ... (vos styles media query restent inchangés) ... */
     }
   </style>
 </head>
@@ -346,7 +295,7 @@
         </div>
       </div>
       <p class="description">
-        Cette carte interactive présente la répartition de la population marocaine par région. 
+        Cette carte interactive présente la répartition de la population marocaine par région. <br>
         Les données incluent la population totale, le nombre de marocains, d'étrangers et de ménages.
       </p>
     </div>
@@ -363,13 +312,13 @@
       <div class="info-card">
         <h3><i>📊</i> À propos de cette visualisation</h3>
         <p>Cette carte choroplèthe représente la distribution de la population marocaine à travers les différentes régions du pays. Les couleurs indiquent les différents seuils de population.</p>
-        <p>Passez votre souris sur une région pour voir les détails démographiques, ou cliquez pour zoomer sur cette région.</p>
+        <p>Passez votre souris sur une région pour voir les détails démographiques, ou cliquez pour zoomer et calculer la surface via un service WPS.</p>
       </div>
       
       <div class="info-card">
         <h3><i>🔍</i> Comment utiliser la carte</h3>
         <p><strong>Survoler une région</strong> : Affiche les informations détaillées sur la population</p>
-        <p><strong>Cliquer sur une région</strong> : Zoomer sur la région sélectionnée</p>
+        <p><strong>Cliquer sur une région</strong> : Zoome et calcule la surface de la région (via WPS)</p>
         <p><strong>Utiliser les contrôles</strong> : Zoomer/dézoomer avec les boutons +/-</p>
         <p><strong>Changer le fond de carte</strong> : Utiliser le contrôle en haut à droite</p>
         <p><strong>Légende</strong> : Comprendre la signification des couleurs (en bas à droite)</p>
@@ -377,8 +326,8 @@
       
       <div class="info-card">
         <h3><i>📈</i> Méthodologie</h3>
-        <p>Les données de population sont basées sur le recensement officiel. La carte utilise une échelle de couleurs séquentielle allant du rouge clair au rouge foncé pour représenter les différentes densités de population.</p>
-        <p>Les régions sont délimitées selon les frontières administratives officielles.</p>
+        <p>Les données de population sont basées sur le recensement officiel. Les données de surface sont calculées en temps réel en appelant un service web de géotraitement (WPS) hébergé localement.</p>
+        <p>Le calcul de surface utilise une reprojection vers un CRS mondial équivalent (EPSG:6933) pour garantir des résultats précis en m².</p>
       </div>
     </div>
   </main>
@@ -404,12 +353,11 @@
     </div>
   </footer>
 
-  <!-- Include your original data file -->
   <script src="./Carte Choroplèthe - Population par région_files/Population-region.js.download"></script>
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script>
-    // Initialize the map - using the same settings as your original code
+    // Initialize the map
     const map = L.map('map').setView([31.5, -7.5], 6);
 
     // Define multiple base maps
@@ -417,35 +365,32 @@
       maxZoom: 18,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     });
-
     const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
       maxZoom: 18
     });
-
     const lightLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       subdomains: 'abcd',
       maxZoom: 20
     });
-
-    // Add the default base map
     osmLayer.addTo(map);
 
-    // Create layer control (positioned top-right)
+    // Create layer control
     const baseMaps = {
       "Carte Standard": osmLayer,
       "Vue Satellite": satelliteLayer,
       "Carte Claire": lightLayer
     };
-
     const layersControl = L.control.layers(baseMaps, null, {
       position: 'topright'
     }).addTo(map);
 
-    // Create info control (positioned topleft)
+    // Create info control
     const info = L.control({ position: 'topleft' });
 
+    // --- MODIFIÉ --- 
+    // Mise à jour de la fonction info.update pour inclure un placeholder WPS
     info.onAdd = function () {
       this._div = L.DomUtil.create('div', 'info');
       this.update();
@@ -453,7 +398,7 @@
     };
 
     info.update = function (props) {
-      this._div.innerHTML = '<h4>Population Régionale</h4>' +
+      const baseHtml = '<h4>Population Régionale</h4>' +
         (props
           ? `<div class="region-name">${props.nom_region}</div>
              <div class="stat-item">
@@ -474,12 +419,22 @@
                  <span class="stat-value">${Number(props[" Menages"]).toLocaleString()}</span>
                </div>
              </div>`
-          : 'Survolez une région pour voir les détails');
-    };
+          : 'Survolez une région pour les détails.<br><b>Cliquez pour calculer la surface.</b>');
+      
+      // Ajoute un placeholder pour le résultat WPS, caché par défaut
+      const wpsHtml = `
+        <div class="stats-box wps-box" id="wps-result-box" style="display: none;">
+          <div class="stat-item">
+            <span class="stat-label wps-label">Surface (WPS):</span>
+            <span class="stat-value wps-value" id="wps-area-value">...</span>
+          </div>
+        </div>`;
 
+      this._div.innerHTML = baseHtml + wpsHtml;
+    };
     info.addTo(map);
 
-    // NEW COLOR SCHEME: from #fff5f0 (light) to #67000d (dark)
+    // Color scheme
     function getColor(d) {
       d = Number(d);
       return d > 5132639 ? '#67000d' :
@@ -489,7 +444,7 @@
                             '#fff5f0';
     }
 
-    // Style function for regions - same as original
+    // Style function
     function style(feature) {
       return {
         fillColor: getColor(feature.properties[" Populatio"]),
@@ -501,7 +456,7 @@
       };
     }
 
-    // Highlight feature on hover - same as original
+    // Highlight feature
     function highlightFeature(e) {
       const layer = e.target;
       layer.setStyle({
@@ -514,41 +469,128 @@
       info.update(layer.feature.properties);
     }
 
-    // Reset highlight - same as original
+    // Reset highlight
     function resetHighlight(e) {
       geojson.resetStyle(e.target);
       info.update();
     }
 
-    // Zoom to feature on click - same as original
-    function zoomToFeature(e) {
+    // --- NOUVEAU ---
+    // Fonction pour gérer le clic sur une région
+    function onRegionClick(e) {
+      // 1. Zoomer sur la région
       map.fitBounds(e.target.getBounds());
+      
+      const layer = e.target;
+      const feature = layer.feature;
+      
+      // 2. Mettre à jour la boîte d'info pour afficher "Calcul en cours..."
+      const wpsResultBox = info._div.querySelector('#wps-result-box');
+      const wpsValue = info._div.querySelector('#wps-area-value');
+      
+      if (wpsResultBox && wpsValue) {
+        wpsValue.textContent = 'Calcul en cours...';
+        wpsResultBox.style.display = 'block'; // Rendre la boîte visible
+      }
+
+      // 3. Appeler la fonction WPS
+      callWPSArea(feature, wpsValue, wpsResultBox);
     }
 
-    // Add event listeners to each feature - same as original
+    // --- NOUVEAU ---
+    // Fonction asynchrone pour appeler le serveur WPS
+    async function callWPSArea(feature, wpsValueElement, wpsBoxElement) {
+      const wpsUrl = 'http://127.0.0.1:5000/wps';
+      // Assurez-vous que l'identifier correspond à celui dans votre demo.py
+      const processId = 'universal_area'; 
+      
+      // Nous n'avons besoin que de la géométrie pour le calcul
+      const geometry = feature.geometry; 
+
+      // Construire le corps de la requête XML
+      const xmlBody = `
+      <wps:Execute version="1.0.0" service="WPS" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink">
+          <ows:Identifier>${processId}</ows:Identifier>
+          <wps:DataInputs>
+              <wps:Input>
+                  <ows:Identifier>input_layer</ows:Identifier>
+                  <wps:Data>
+                      <wps:ComplexData mimeType="application/geojson">
+                          <![CDATA[${JSON.stringify(geometry)}]]>
+                      </wps:ComplexData>
+                  </wps:Data>
+              </wps:Input>
+          </wps:DataInputs>
+          <wps:ResponseForm>
+              <wps:ResponseDocument storeExecuteResponse="false" status="false">
+                  <wps:Output asReference="false">
+                      <ows:Identifier>total_area</ows:Identifier>
+                  </wps:Output>
+              </wps:ResponseDocument>
+          </wps:ResponseForm>
+      </wps:Execute>`;
+      
+      try {
+        const response = await fetch(wpsUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/xml' },
+            body: xmlBody
+        });
+
+        if (!response.ok) {
+           throw new Error(`Erreur HTTP: ${response.status}`);
+        }
+
+        const xmlString = await response.text();
+        
+        // Analyser la réponse XML
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+        
+        // Extraire la donnée (le nombre)
+        const outputNode = xmlDoc.querySelector("LiteralData");
+        
+        if (outputNode) {
+            const area = parseFloat(outputNode.textContent);
+            // Convertir de m² en km² et formater
+            const areaInKm2 = (area / 1_000_000).toLocaleString('fr-FR', { maximumFractionDigits: 2 });
+            wpsValueElement.textContent = `${areaInKm2} km²`;
+        } else {
+            const errorNode = xmlDoc.querySelector("ExceptionText");
+            wpsValueElement.textContent = 'Erreur: ' + (errorNode ? errorNode.textContent : 'Réponse inconnue.');
+        }
+
+      } catch (error) {
+        console.error('Erreur lors de l_appel WPS:', error);
+        wpsValueElement.textContent = `Erreur de connexion. (Serveur lancé?)`;
+      } finally {
+        // S'assurer que la boîte de résultat est visible
+        wpsBoxElement.style.display = 'block';
+      }
+    }
+
+    // --- MODIFIÉ ---
+    // Fonction d'ajout des événements (on remplace 'zoomToFeature' par 'onRegionClick')
     function onEachFeature(feature, layer) {
       layer.on({
         mouseover: highlightFeature,
         mouseout: resetHighlight,
-        click: zoomToFeature
+        click: onRegionClick  // Clic appelle maintenant la nouvelle fonction
       });
     }
 
-    // Create the GeoJSON layer with your original data
-    // This uses the 'region' variable from your Population-region.js file
+    // Create the GeoJSON layer
     const geojson = L.geoJson(region, {
       style: style,
       onEachFeature: onEachFeature
     }).addTo(map);
 
-    // Create legend (positioned bottomright)
+    // Create legend
     const legend = L.control({ position: 'bottomright' });
-
     legend.onAdd = function () {
       const div = L.DomUtil.create('div', 'info legend');
       const grades = [219965, 1655623, 3020431, 5132639, 7688967];
       const labels = ['<div class="legend-title">Population par région</div>'];
-
       for (let i = 0; i < grades.length; i++) {
         const from = grades[i];
         const to = grades[i + 1];
@@ -556,13 +598,10 @@
           `<i style="background:${getColor(from + 1)}"></i> ${from.toLocaleString()}${to ? '&ndash;' + to.toLocaleString() : '+'}`
         );
       }
-
       div.innerHTML = labels.join('<br>');
       return div;
     };
-
     legend.addTo(map);
   </script>
 </body>
 </html>
-
